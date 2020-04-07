@@ -30,7 +30,13 @@ const IndexPage = () => {
     console.log({response})
     setNewsData({articles : response.data.articles})
   }
+ async function getNewsKeyword(keyword){
+  let param = "q=" + keyword + "&"
+  let response = await axios.get("https://newsapi.org/v2/top-headlines?"+param+ "apiKey=" + APIKey );
+  console.log({response})
+  setNewsData({articles : response.data.articles})
 
+ }
 
 
   useEffect(() => {
@@ -42,6 +48,11 @@ const IndexPage = () => {
     getNews(formik.values.country)
 
   }, [formik.values.country]);
+ 
+  useEffect(() => {
+   getNewsKeyword(formik.values.keyword)
+
+  }, [formik.values.keyword]);
 
 
 
