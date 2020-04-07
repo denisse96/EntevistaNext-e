@@ -1,43 +1,58 @@
 import React, { useEffect, useState } from "react"
 import { Link } from "gatsby"
-
 import Layout from "../components/layout"
-
 import SEO from "../components/seo"
 import axios from "axios";
 import { useFormik } from 'formik';
 
 const IndexPage = () => {
+  let APIKey = "05999112ed464d9b9cccbaa799a9405f"
+  let URL = "https://newsapi.org/v2/top-headlines?"
   const formik = useFormik({
     initialValues: {
      country:"us", 
      keyword:""
     },
     onSubmit: (values) => {
-      console.log(values);
+      getBoth(values.country, values.keyword)
+      console.log("Submit", values);
+      
     },
   });
 
-
-  let APIKey = "05999112ed464d9b9cccbaa799a9405f"
   const [newsData, setNewsData] = useState( {articles: []} )
-
   console.log({newsData}, formik.values)
  
   async function getNews(country){
     let param = "country=" + country + "&"
-    let response = await axios.get("https://newsapi.org/v2/top-headlines?"+param+ "apiKey=" + APIKey );
+    let response = await axios.get(URL+param+ "apiKey=" + APIKey );
     console.log({response})
     setNewsData({articles : response.data.articles})
   }
  async function getNewsKeyword(keyword){
   let param = "q=" + keyword + "&"
-  let response = await axios.get("https://newsapi.org/v2/top-headlines?"+param+ "apiKey=" + APIKey );
-  console.log({response})
-  setNewsData({articles : response.data.articles})
+  try{
+    let response = await axios.get(URL+param+ "apiKey=" + APIKey );
+    console.log({response})
+    setNewsData({articles : response.data.articles})
+  }catch(exception){
+    console.log(exception)
+  }
+ }
+ async function getBoth(country,keyword){
+  let param = "country=" + country 
+  param = param+ "&q=" + keyword + "&"
+
+  try{
+    let response = await axios.get(URL+param+ "apiKey=" + APIKey );
+    console.log({response})
+    setNewsData({articles : response.data.articles})
+  }catch(exception){
+    
+    console.log(exception)
+  }
 
  }
-
 
   useEffect(() => {
     getNews("us")
@@ -50,7 +65,10 @@ const IndexPage = () => {
   }, [formik.values.country]);
  
   useEffect(() => {
-   getNewsKeyword(formik.values.keyword)
+    if(formik.values.keyword!==""){
+      getNewsKeyword(formik.values.keyword)
+    }
+  
 
   }, [formik.values.keyword]);
 
@@ -61,7 +79,7 @@ const IndexPage = () => {
 return (
   <Layout>
     <SEO title="Home" />
-  
+    <form onSubmit={formik.handleSubmit}> 
     <label htmlFor="keyword">KeyWord</label>
     <input type="text" id="keyword" value={formik.values.keyword} onChange={formik.handleChange}></input>
     <select name="country" id="country" value = {formik.values.country} onChange={formik.handleChange}>
@@ -71,6 +89,8 @@ return (
       <option value = "au">au</option>
       <option value = "us">us</option>
     </select>
+    <button type="submit">Filter Both</button>
+    </form>
 
     <ul>
       {newsData.articles.map((item, index) => (
